@@ -19,7 +19,7 @@ def create_dir(dir_path):
     dir_str[dirs[-1]] = {}
 
 def list_dir(structure, indent=""):
-    for folder, subfolder in structure.items():
+    for folder, subfolder in sorted(structure.items()):
         if isinstance(subfolder, dict):
             print(f"{indent}{folder}")
             list_dir(subfolder, indent + "  ")
@@ -42,9 +42,7 @@ def move_dir(structure, src_path, dest_path):
     for dir in dest_dirs:
         if dir in dest_parent and isinstance(dest_parent[dir], dict):
             dest_parent = dest_parent[dir]
-    dest_parent[move_dir] = moved_dir
-    
-
+    dest_parent[move_dir] = moved_dir   
 
 def delete_dir(structure, dir_path):
     dirs = dir_path.split("/")

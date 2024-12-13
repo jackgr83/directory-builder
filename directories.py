@@ -1,27 +1,22 @@
-
 directory_structure = {}
 
 def get_cmd():
     valid_inputs = ["CREATE", "LIST", "MOVE", "DELETE"]
     while True:
-        cmd = input("Enter a command (CREATE/LIST/MOVE/DELETE): ").upper()
-        if cmd not in valid_inputs:
+        cmd = input("Enter a command (CREATE/LIST/MOVE/DELETE): ")
+        if cmd.split(" ")[0].upper() not in valid_inputs:
             print("Please enter a valid command (CREATE/LIST/MOVE/DELETE)")
             continue
         else:
             return cmd
 
-def create_dir():
-    resp = input("Enter a name for the directory/s you would like to create.\nNote: Use a slash to enter subdirectories (e.g. directory1/directory2): \n")
-
-    dirs = resp.split('/')
+def create_dir(dir_path):
+    dirs = dir_path.split('/')
     dir_str = directory_structure
-    for dir in dirs[:-1]:
-        dir_str[dir] = {}
-        dir_str = dir_str[dir]
-    dir_str[dirs[-1]] = None
-
-    print(f"CREATE {resp}")
+    for d in dirs[:-1]:
+        dir_str[d] = {}
+        dir_str = dir_str[d]
+    dir_str[dirs[-1]] = {}
 
 def list_dir(structure, indent=""):
     for folder, subfolder in structure.items():
@@ -31,55 +26,56 @@ def list_dir(structure, indent=""):
         else:
             print(f"{indent}{folder}")
 
-def move_dir():
-    while True:
-        resp = input("Enter the absolute path of the directory you would like to move followed by a space and the absolute path fo the directory to move it to: ")
-        if resp not in directory_structure:
-            print(f"{resp} does not exist. Please choose a valid directory name: {directory_structure.keys()}")
-            continue
-        else:
-            # TODO: Move directories
-            print(f"MOVE {resp}")
-            break
+def move_dir(structure, src_path, dest_path):
+    src_dirs = src_path.split("/")
+    dest_dirs = dest_path.split("/")
 
-def delete_dir():
-    while True:
-        resp = input("Enter a name for the directory you would like to create: ")
-        if resp not in directory_structure:
-            print(f"{resp} does not exist. Please choose a valid directory name: {directory_structure.keys()}")
-            continue
-        else:
-            directory_structure.pop("dir_name")
-            print(f"DELETE {resp}")
-            break
+    src_parent = structure
+    for dir in src_dirs[:-1]:
+        if dir in src_parent and isinstance(src_parent[dir], dict):
+            src_parent = src_parent[dir]
 
-def keep_going():
-    while True:
-        resp = input("Enter another command? (y/n):").lower()
-        if resp not in ['y', 'n']:
-            print("Please enter either y or n.")
-            continue
-        elif resp == "n":
-            return False
-        else:
-            return True
+    move_dir = src_dirs[-1]
+    moved_dir = src_parent.pop(move_dir)
+
+    dest_parent = structure
+    for dir in dest_dirs:
+        if dir in dest_parent and isinstance(dest_parent[dir], dict):
+            dest_parent = dest_parent[dir]
+    dest_parent[move_dir] = moved_dir
+    
+
+
+def delete_dir(structure, dir_path):
+    dirs = dir_path.split("/")
+    parent_dir = structure
+    for dir in dirs[:-1]:
+        if dir in parent_dir and isinstance(parent_dir[dir], dict):
+            parent_dir = parent_dir[dir]
+    if dirs[-1] in parent_dir:
+        del parent_dir[dirs[-1]]
+    else:
+        print(f"Cannot delete {dir_path} - {dirs[0]} does not exist")
     
 if __name__ == "__main__":
     while True:
-        cmd=get_cmd()
-
-        if cmd == "CREATE":
-            create_dir()
-        elif cmd == "LIST":
-            print(cmd)
-            list_dir(directory_structure)
-        elif cmd == "MOVE":
-            move_dir()
-        elif cmd == "DELETE":
-            delete_dir()
-        
-        if keep_going():
+        cmd = input("Enter a command: ")
+        if cmd.split(" ")[0] not in ["CREATE", "LIST", "MOVE", "DELETE"]:
+            print("Please enter a valid command (CREATE/LIST/MOVE/DELETE)")
             continue
         else:
-            print(directory_structure)
-            break
+            cmds = cmd.split(" ")
+
+            if cmds[0] == "CREATE":
+                print(cmd)
+                create_dir(cmds[1])
+            elif cmds[0] == "LIST":
+                print(cmd)
+                list_dir(directory_structure)
+            elif cmds[0] == "MOVE":
+                print(cmd)
+                move_dir(directory_structure, cmds[1], cmds[2])
+            elif cmds[0] == "DELETE":
+                print(cmd)
+                delete_dir(directory_structure, cmds[1])
+
